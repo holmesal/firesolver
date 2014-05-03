@@ -3,7 +3,9 @@
 angular.module('holmesal.firesolver', ['firebase'])
 	.provider 'firesolver', ->
 
-		firesolver = ($firebase, $q) ->
+		firesolver = ($firebase, $q, $rootScope) ->
+
+			firebaseURL = null
 
 			get: (path, ultimatePath=null) ->
 				# path points to a firebase location
@@ -12,16 +14,28 @@ angular.module('holmesal.firesolver', ['firebase'])
 				deferredGet = $q.defer()
 
 				# Check that firebase url has been set
-				unless opts.firebaseUrl
-					console.error "<firesolver> Firebase URL not set - use firesolverProvider.config() to do this"
+				if opts.firebaseURL
+					firebaseURL = opts.firebaseURL
+				else
+					if $rootScope.firebaseURL
+						firebaseURL = $rootScope.firebaseURL
+					else
+						console.error "<firesolver> Firebase URL not set - use firesolverProvider.config() or set $rootScope.firebaseURL to do this"
+
+				# console.log "firebaseURL is #{firebaseURL}"
+				# console.log "path is #{path}"
 
 				# Make sure paths are correct
 				unless path[0] is '/'
 					path = "/#{path}"
-				unless ultimatePath and ultimatePath[0] is '/'
-					path = "/#{ultimatePath}"
+				# unless ultimatePath and ultimatePath[0] is '/'
+				# 	path = "/#{ultimatePath}"
 
-				fullPath = opts.firebaseUrl + path
+				# console.log "path is #{path}"
+
+				fullPath = firebaseURL + path
+
+				# console.log fullPath
 
 				getRef = new Firebase fullPath
 

@@ -3,7 +3,9 @@
   'use strict';
   angular.module('holmesal.firesolver', ['firebase']).provider('firesolver', function() {
     var firesolver, opts;
-    firesolver = function($firebase, $q) {
+    firesolver = function($firebase, $q, $rootScope) {
+      var firebaseURL;
+      firebaseURL = null;
       return {
         get: function(path, ultimatePath) {
           var deferredGet, fullPath, getRef;
@@ -11,16 +13,19 @@
             ultimatePath = null;
           }
           deferredGet = $q.defer();
-          if (!opts.firebaseUrl) {
-            console.error("<firesolver> Firebase URL not set - use firesolverProvider.config() to do this");
+          if (opts.firebaseURL) {
+            firebaseURL = opts.firebaseURL;
+          } else {
+            if ($rootScope.firebaseURL) {
+              firebaseURL = $rootScope.firebaseURL;
+            } else {
+              console.error("<firesolver> Firebase URL not set - use firesolverProvider.config() or set $rootScope.firebaseURL to do this");
+            }
           }
           if (path[0] !== '/') {
             path = "/" + path;
           }
-          if (!(ultimatePath && ultimatePath[0] === '/')) {
-            path = "/" + ultimatePath;
-          }
-          fullPath = opts.firebaseUrl + path;
+          fullPath = firebaseURL + path;
           getRef = new Firebase(fullPath);
           getRef.on('value', function(snapshot) {
             var getItem;
