@@ -1,0 +1,23 @@
+{
+  "name": "firesolver",
+  "version": "0.0.1",
+  "authors": [
+    "holmesal <hello@alonso.io>"
+  ],
+  "description": "Hold up some of your angular routes until data is loaded, or deny route changes to unauthenticated users",
+  "main": "firesolver.js",
+  "keywords": [
+    "angular",
+    "firesolver",
+    "resolve",
+    "route"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
