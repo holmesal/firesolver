@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('holmesal.firesolver', ['firebase'])
-.service 'Firesolver', ($rootScope, $firebase, $firebaseSimpleLogin, $q) ->
+.service 'Firesolver', ($rootScope, $firebase, $firebaseSimpleLogin, $q, $timeout) ->
 
 
 
@@ -11,6 +11,9 @@ angular.module('holmesal.firesolver', ['firebase'])
 			# First off, check the url
 			unless $rootScope.firebaseURL
 				console.error "<firesolver> Firebase URL not set - use firesolverProvider.config() or set $rootScope.firebaseURL to do this"
+
+			# This flag identifies a null user on the $rootScope as a legitimately empty user
+			@emptyUser = false
 
 			# Set up the promises
 			@reset()
@@ -42,6 +45,7 @@ angular.module('holmesal.firesolver', ['firebase'])
 					@deferredAuthUser.reject 'User is NOT logged in!'
 
 		reset: ->
+			console.log '<firesolver> resetting promises'
 			@deferredUser = $q.defer()
 			@deferredAuthUser = $q.defer()
 
@@ -53,7 +57,7 @@ angular.module('holmesal.firesolver', ['firebase'])
 			@deferredAuthUser.promise.then (authUser) =>
 				console.log '<firesolver> deferred auth user resolved successfully!'
 				# Bind the firebase user to the root scope
-				userRef = @rootRef.child('users').child(authUser.uid)
+				userRef = @rootRef.child('users').child(authUser.username)
 				$rootScope.user = $firebase userRef
 				# Watch it for updates
 				$rootScope.$watch 'user', (user) =>
@@ -68,6 +72,8 @@ angular.module('holmesal.firesolver', ['firebase'])
 				# This allows access to routes that only require the user promise, but won't allow access to routes that require both the authUser and the user
 				# Resolve with a null value, because there is no user
 				@deferredUser.resolve null
+				# The user is actually empty
+				@emptyUser = true
 
 				# Reset the promises, so that subsequent route changes start with fresh promises
 				# Note that these will be overridden by $rootScope values if those exist
@@ -86,7 +92,8 @@ angular.module('holmesal.firesolver', ['firebase'])
 
 		currentUser: ->
 			# If the user already exists, return that.
-			if $rootScope.user
+			# Also return empty users that we've checked
+			if $rootScope.user or @emptyUser
 				console.log 'returning user'
 				console.log $rootScope.user
 				return $rootScope.user
@@ -95,7 +102,6 @@ angular.module('holmesal.firesolver', ['firebase'])
 			else
 				console.log 'returning user promise'
 				return @deferredUser.promise
-				# deferUser()
 
 		get: (path) ->
 			# path points to a firebase location
@@ -120,14 +126,14 @@ angular.module('holmesal.firesolver', ['firebase'])
 
 			# console.log fullPath
 
-			getRef = rootRef.child path
+			getRef = @rootRef.child path
 
 			getRef.on 'value', (snapshot) ->
 				getItem = snapshot.val()
 
 				# If there's a value here, continue
 				if getItem
-					deferredGet.resolve getItem
+					deferredGet.resolve $firebase(getRef)
 				else
 					deferredGet.reject "<firesolver> No data found at #{path}"
 
