@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('holmesal.firesolver', ['firebase'])
-.service 'Firesolver', ($rootScope, $firebase, $firebaseSimpleLogin, $q, $timeout) ->
+.service 'Firesolver', ['$rootScope', '$firebase', '$firebaseSimpleLogin', '$q', '$timeout', ($rootScope, $firebase, $firebaseSimpleLogin, $q, $timeout) ->
 
 
 
@@ -145,3 +145,5 @@ angular.module('holmesal.firesolver', ['firebase'])
 			deferredGet.promise
 
 	return new Firesolver
+
+]
